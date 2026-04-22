@@ -1,0 +1,63 @@
+﻿# k8s/api-deployment.yaml
+# Replace <ACR_NAME> with your Azure Container Registry name.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mmr-api
+  namespace: mmr
+  labels:
+    app: mmr-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mmr-api
+  template:
+    metadata:
+      labels:
+        app: mmr-api
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: mmr-sa
+      containers:
+        - name: api
+          image: <ACR_NAME>.azurecr.io/mmr-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          env:
+            - name: ALLOWED_ORIGINS
+              value: "https://mmr.company.com"
+          envFrom:
+            - secretRef:
+                name: mmr-secrets
+          volumeMounts:
+            - name: kv-secrets
+              mountPath: /mnt/secrets
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: kv-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: mmr-kv-secrets

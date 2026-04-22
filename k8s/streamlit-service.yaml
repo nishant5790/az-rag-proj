@@ -1,0 +1,17 @@
+﻿# k8s/streamlit-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: mmr-streamlit
+  namespace: mmr
+  labels:
+    app: mmr-streamlit
+spec:
+  type: ClusterIP
+  selector:
+    app: mmr-streamlit
+  ports:
+    - port: 8501
+      targetPort: 8501
+      protocol: TCP
+      name: http

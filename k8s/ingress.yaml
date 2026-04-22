@@ -1,0 +1,47 @@
+﻿# k8s/ingress.yaml
+# Requires NGINX Ingress Controller and cert-manager with a ClusterIssuer
+# named "letsencrypt-prod". Replace company.com with your actual domain.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mmr-ingress
+  namespace: mmr
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    # Streamlit requires WebSocket upgrade
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+spec:
+  tls:
+    - hosts:
+        - mmr.company.com
+        - api.mmr.company.com
+      secretName: mmr-tls
+  rules:
+    # Streamlit frontend
+    - host: mmr.company.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mmr-streamlit
+                port:
+                  number: 8501
+    # FastAPI backend
+    - host: api.mmr.company.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mmr-api
+                port:
+                  number: 8000

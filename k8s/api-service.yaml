@@ -1,0 +1,17 @@
+﻿# k8s/api-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: mmr-api
+  namespace: mmr
+  labels:
+    app: mmr-api
+spec:
+  type: ClusterIP
+  selector:
+    app: mmr-api
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+      name: http

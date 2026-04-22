@@ -1,0 +1,52 @@
+﻿# k8s/streamlit-deployment.yaml
+# Replace <ACR_NAME> with your Azure Container Registry name.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mmr-streamlit
+  namespace: mmr
+  labels:
+    app: mmr-streamlit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mmr-streamlit
+  template:
+    metadata:
+      labels:
+        app: mmr-streamlit
+    spec:
+      containers:
+        - name: streamlit
+          image: <ACR_NAME>.azurecr.io/mmr-streamlit:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8501
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          env:
+            - name: FASTAPI_URL
+              value: "http://mmr-api.mmr.svc.cluster.local:8000"
+            - name: AZURE_SEARCH_INDEX_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: mmr-secrets
+                  key: AZURE_SEARCH_INDEX_NAME
+          livenessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 10
+            periodSeconds: 10
