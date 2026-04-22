@@ -1,0 +1,22 @@
+﻿# requirements.txt - Full dev environment (API + Streamlit + CLI)
+# For production containers use requirements-api.txt or requirements-streamlit.txt
+
+# Azure SDKs
+azure-search-documents>=11.6.0
+azure-storage-blob>=12.19.0
+azure-ai-documentintelligence>=1.0.0
+azure-identity>=1.15.0
+
+# API
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+
+# UI
+streamlit>=1.35.0
+pymupdf>=1.24.0
+
+# Utilities
+python-dotenv>=1.0.0
+requests>=2.31.0
+tqdm>=4.66.0
+rich>=13.7.0
